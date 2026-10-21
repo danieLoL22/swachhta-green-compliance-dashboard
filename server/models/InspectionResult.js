@@ -1,0 +1,2 @@
+const mongoose=require('mongoose');
+module.exports=mongoose.model('InspectionResult',new mongoose.Schema({inspection:{type:mongoose.Schema.Types.ObjectId,ref:'Inspection',required:true},location:{type:mongoose.Schema.Types.ObjectId,ref:'Location'},category:{type:mongoose.Schema.Types.ObjectId,ref:'Category'},standard:{type:mongoose.Schema.Types.ObjectId,ref:'Standard'},status:{type:String,enum:['compliant','partial','non_compliant']},score:{type:Number,default:0}},{timestamps:true}));

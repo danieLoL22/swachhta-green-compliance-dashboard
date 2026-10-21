@@ -1,0 +1,12 @@
+import {useEffect,useState} from 'react';import api from '../services/api';import {Modal,Empty} from '../components/UI';import {useAuth} from '../context/AuthContext';
+export default function Locations(){
+ const[list,setList]=useState([]);const[open,setOpen]=useState(false);const[form,setForm]=useState({name:'',type:'',description:'',incharge:''});const[edit,setEdit]=useState(null);
+ const{user}=useAuth();const admin=user?.role==='admin';
+ const load=async()=>{const{data}=await api.get('/locations');setList(data);};
+ useEffect(()=>{load();},[]);
+ const save=async(e)=>{e.preventDefault();if(edit)await api.put('/locations/'+edit._id,form);else await api.post('/locations',form);setOpen(false);setEdit(null);setForm({name:'',type:'',description:'',incharge:''});load();};
+ const del=async(id)=>{if(!confirm('Delete location?'))return;await api.delete('/locations/'+id);load();};
+ return <div className="space-y-4"><div className="flex justify-between"><h1 className="text-xl font-bold">Campus Locations</h1>{admin&&<button className="btn btn-primary" onClick={()=>{setEdit(null);setForm({name:'',type:'Block',description:'',incharge:''});setOpen(true);}}>+ Add Location</button>}</div>
+ {!list.length?<Empty msg="No locations"/>:<div className="grid md:grid-cols-3 gap-3">{list.map(l=><div key={l._id} className="card"><div className="font-bold">{l.name}</div><div className="text-xs text-gray-500">{l.type} {l.incharge&&'• '+l.incharge}</div><div className="text-sm text-gray-600">{l.description}</div>{admin&&<div className="mt-2 flex gap-2"><button className="btn bg-gray-100" onClick={()=>{setEdit(l);setForm({name:l.name,type:l.type,description:l.description,incharge:l.incharge});setOpen(true);}}>Edit</button><button className="btn bg-red-50 text-red-700" onClick={()=>del(l._id)}>Delete</button></div>}</div>)}</div>}
+ <Modal open={open} onClose={()=>setOpen(false)} title={edit?'Edit Location':'Add Location'}><form onSubmit={save} className="space-y-2"><input className="input" placeholder="Name e.g. Block D" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required/><input className="input" placeholder="Type" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}/><input className="input" placeholder="Incharge" value={form.incharge} onChange={e=>setForm({...form,incharge:e.target.value})}/><textarea className="input" placeholder="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><button className="btn btn-primary">Save</button></form></Modal></div>;
+}

@@ -1,0 +1,13 @@
+const User=require('../models/User');
+const {asyncHandler}=require('../middleware/errorHandler');
+exports.list=asyncHandler(async(req,res)=>{const users=await User.find().select('-password').sort({createdAt:-1});res.json(users);});
+exports.create=asyncHandler(async(req,res)=>{const{name,email,password,role,phone,department}=req.body;if(!name||!email||!password)return res.status(400).json({message:'Name, email, password required'});
+const ex=await User.findOne({email:email.toLowerCase()});if(ex)return res.status(400).json({message:'Email already exists'});
+const u=await User.create({name,email:email.toLowerCase(),password,role,phone,department});u.password=undefined;res.status(201).json(u);});
+exports.update=asyncHandler(async(req,res)=>{const{name,role,phone,department,active}=req.body;const u=await User.findById(req.params.id);if(!u)return res.status(404).json({message:'User not found'});
+if(name!==undefined)u.name=name;if(role!==undefined)u.role=role;if(phone!==undefined)u.phone=phone;if(department!==undefined)u.department=department;if(active!==undefined)u.active=active;
+await u.save();u.password=undefined;res.json(u);});
+exports.remove=asyncHandler(async(req,res)=>{const u=await User.findById(req.params.id);if(!u)return res.status(404).json({message:'User not found'});
+if(String(u._id)===String(req.user._id))return res.status(400).json({message:'Cannot delete yourself'});await u.deleteOne();res.json({message:'User deleted'});});
+exports.updateProfile=asyncHandler(async(req,res)=>{const u=await User.findById(req.user._id);const{name,phone,department}=req.body;
+if(name!==undefined)u.name=name;if(phone!==undefined)u.phone=phone;if(department!==undefined)u.department=department;await u.save();u.password=undefined;res.json(u);});

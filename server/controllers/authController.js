@@ -1,0 +1,13 @@
+const jwt=require('jsonwebtoken');
+const User=require('../models/User');
+const {asyncHandler}=require('../middleware/errorHandler');
+const sign=(id)=>jwt.sign({id},process.env.JWT_SECRET,{expiresIn:'7d'});
+exports.login=asyncHandler(async(req,res)=>{const{email,password}=req.body;if(!email||!password)return res.status(400).json({message:'Email and password required'});
+const user=await User.findOne({email:email.toLowerCase()});if(!user||!user.active)return res.status(401).json({message:'Invalid login credentials.'});
+const ok=await user.comparePassword(password);if(!ok)return res.status(401).json({message:'Invalid login credentials.'});
+const token=sign(user._id);res.json({token,user:{_id:user._id,name:user.name,email:user.email,role:user.role,phone:user.phone,department:user.department}});});
+exports.me=asyncHandler(async(req,res)=>{res.json(req.user);});
+exports.register=asyncHandler(async(req,res)=>{const{name,email,password,role,phone,department}=req.body;if(!name||!email||!password)return res.status(400).json({message:'Name, email, password required'});
+const ex=await User.findOne({email:email.toLowerCase()});if(ex)return res.status(400).json({message:'Email already exists'});
+const user=await User.create({name,email:email.toLowerCase(),password,role:role==='admin'?'admin':'inspector',phone,department});const token=sign(user._id);
+res.status(201).json({token,user:{_id:user._id,name:user.name,email:user.email,role:user.role}});});

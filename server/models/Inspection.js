@@ -1,0 +1,4 @@
+const mongoose=require('mongoose');
+const resultSchema=new mongoose.Schema({standard:{type:mongoose.Schema.Types.ObjectId,ref:'Standard',required:true},status:{type:String,enum:['compliant','partial','non_compliant'],required:true},remarks:{type:String,default:''},evidence:{type:String,default:''}},{_id:false});
+const s=new mongoose.Schema({location:{type:mongoose.Schema.Types.ObjectId,ref:'Location',required:true},category:{type:mongoose.Schema.Types.ObjectId,ref:'Category',required:true},inspector:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},date:{type:Date,default:Date.now},notes:{type:String,default:''},results:{type:[resultSchema],required:true},score:{type:Number,default:0},obtained:{type:Number,default:0},possible:{type:Number,default:0},rating:{type:String,enum:['Good','Needs Improvement','Poor'],default:'Poor'}},{timestamps:true});
+module.exports=mongoose.model('Inspection',s);

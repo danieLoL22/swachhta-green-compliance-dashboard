@@ -1,0 +1,14 @@
+import {useEffect,useState} from 'react';import api from '../services/api';import {Modal} from '../components/UI';
+export default function Users(){
+ const[list,setList]=useState([]);const[open,setOpen]=useState(false);const[form,setForm]=useState({name:'',email:'',password:'',role:'inspector',phone:'',department:''});
+ const load=async()=>{const{data}=await api.get('/users');setList(data);};
+ useEffect(()=>{load();},[]);
+ const save=async(e)=>{e.preventDefault();await api.post('/users',form);setOpen(false);setForm({name:'',email:'',password:'',role:'inspector',phone:'',department:''});load();};
+ const del=async(id)=>{if(!confirm('Delete user?'))return;try{await api.delete('/users/'+id);load();}catch(ex){alert(ex.response?.data?.message||'Delete failed');}};
+ const toggle=async(u)=>{await api.put('/users/'+u._id,{active:!u.active});load();};
+ return <div className="space-y-4"><div className="flex justify-between"><h1 className="text-xl font-bold">User Management</h1><button className="btn btn-primary" onClick={()=>setOpen(true)}>+ Add User</button></div>
+ <div className="card overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-gray-500"><th className="p-2">Name</th><th className="p-2">Email</th><th className="p-2">Role</th><th className="p-2">Active</th><th className="p-2">Actions</th></tr></thead><tbody>
+ {list.map(u=><tr key={u._id} className="border-t"><td className="p-2">{u.name}</td><td className="p-2">{u.email}</td><td className="p-2">{u.role}</td><td className="p-2">{u.active?'Yes':'No'}</td><td className="p-2 flex gap-2"><button className="btn bg-gray-100" onClick={()=>toggle(u)}>{u.active?'Deactivate':'Activate'}</button><button className="btn bg-red-50 text-red-700" onClick={()=>del(u._id)}>Delete</button></td></tr>)}
+ </tbody></table></div>
+ <Modal open={open} onClose={()=>setOpen(false)} title="Add User"><form onSubmit={save} className="space-y-2"><input className="input" placeholder="Name" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required/><input className="input" placeholder="Email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} required/><input className="input" type="password" placeholder="Password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} required/><select className="input" value={form.role} onChange={e=>setForm({...form,role:e.target.value})}><option value="inspector">inspector</option><option value="admin">admin</option></select><input className="input" placeholder="Phone" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}/><input className="input" placeholder="Department" value={form.department} onChange={e=>setForm({...form,department:e.target.value})}/><button className="btn btn-primary">Create</button></form></Modal></div>;
+}

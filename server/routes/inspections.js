@@ -1,0 +1,2 @@
+const r=require('express').Router();const c=require('../controllers/inspectionController');const{protect,authorize}=require('../middleware/auth');const upload=require('../middleware/upload');
+r.use(protect);r.get('/',c.list);r.get('/:id',c.getOne);r.post('/',c.create);r.post('/upload',upload.single('file'),(req,res)=>{if(!req.file)return res.status(400).json({message:'No file'});res.json({url:'/uploads/'+req.file.filename});});r.delete('/:id',authorize('admin'),c.remove);module.exports=r;
